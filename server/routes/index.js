@@ -4,12 +4,12 @@ var router = express.Router();
 var passport = require('passport');
 var gravatar = require('gravatar');
 
-/* GET home page. */
+
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express from server folder' });
 });
 
-/* GET Method login page*/
+
 router.get('/login', function(req,res,next){
   res.render('login',{
     title : 'Login Page', message : req.flash('loginMessage')
@@ -24,7 +24,7 @@ router.post('/login',passport.authenticate('local-login',{
   failureFlash : true
 }));
 
-/*GET Method Sign up page*/
+
 router.get('/signup',function(req,res){
   res.render('signup',{
     title:'Signup Page', message : req.flash('signupMessage')
@@ -38,7 +38,7 @@ router.post('/signup',passport.authenticate('local-signup',{
   failureFlash : true
 }));
 
-/*GET Method profile page*/
+
 router.get('/profile', isLoggedIn, function(req,res,next){
   res.render('profile',{
     title : 'Profile Page', user : req.user, avatar : gravatar.
