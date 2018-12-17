@@ -60,7 +60,7 @@ module.exports = function(passport) {
           //에러 발생시
           if(err)
           return done(err);
-          //이베일 중복검사
+          //이메일 중복검사
           if(user){
             return done(null, false, req.flash('signupMessage',
             'email is already taken.'));
