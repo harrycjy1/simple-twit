@@ -1,88 +1,103 @@
 //패스포트 모듈 로드
-var LocalStrategy = require('passport-local').Strategy;
+var LocalStrategy = require("passport-local").Strategy;
 //user 모델 가져오기
-var User = require('../models/users');
+var User = require("../models/users");
 
 module.exports = function(passport) {
   //패스포트 초기화 설정
   //세션을 위해 user직렬화
-  passport.serializeUser(function(user,done){
+  passport.serializeUser(function(user, done) {
     done(null, user.id);
   });
 
   //user 역직렬화
-  passport.deserializeUser(function(id,done){
-    User.findById(id, function(err,user){
+  passport.deserializeUser(function(id, done) {
+    User.findById(id, function(err, user) {
       done(err, user);
     });
   });
   // local strategy 사용
-  passport.use('local-login',new LocalStrategy({
-    usernameField:'email',
-    passwordField:'password',
-    passReqToCallback:true
-  },
-  function(req, email, password, done){
-    if(email)
-    //소문자로 변환
-    email = email.toLowerCase();
-    //비동기로 처리
-    process.nextTick(function(){
-      User.findOne({'local.email':email}, function(err, user){
-        //에러 발생시
-        if(err)
-        return done(err);
-        //에러 체크한후 메시지 가져오기
-        if(!user)
-        return done(null, false, req.flash('loginMessage','No user found'));
-        if(!user.validPassword(password))
-        return done(null, false, req.flash('loginMessage','Wrong password.'));
-        else
-        return done(null,user);
-      });
-    });
-  }));
+  passport.use(
+    "local-login",
+    new LocalStrategy(
+      {
+        usernameField: "email",
+        passwordField: "password",
+        passReqToCallback: true
+      },
+      function(req, email, password, done) {
+        if (email)
+          //소문자로 변환
+          email = email.toLowerCase();
+        //비동기로 처리
+        process.nextTick(function() {
+          User.findOne({ "local.email": email }, function(err, user) {
+            //에러 발생시
+            if (err) return done(err);
+            //에러 체크한후 메시지 가져오기
+            if (!user)
+              return done(
+                null,
+                false,
+                req.flash("loginMessage", "No user found")
+              );
+            if (!user.validPassword(password))
+              return done(
+                null,
+                false,
+                req.flash("loginMessage", "Wrong password.")
+              );
+            else return done(null, user);
+          });
+        });
+      }
+    )
+  );
 
   //local strategy 등록
-  passport.use('local-signup', new LocalStrategy({
-    usernameField: 'email',
-    passwordField: 'password',
-    passReqToCallback: true
-  },
-  function(req,email,password,done){
-    if(email)
-    email=email.toLowerCase();
-    //비동기로 처리
-    process.nextTick(function(){
-      //user가 아직 로그인하지 않았다면
-      if(!req.user){
-        User.findOne({'local.email':email}, function(err, user){
-          //에러 발생시
-          if(err)
-          return done(err);
-          //이메일 중복검사
-          if(user){
-            return done(null, false, req.flash('signupMessage',
-            'email is already taken.'));
-          } else{
-            //user생성
-            var newUser = new User();
-            //req.body로 부터 사용자명 가져오기
-            newUser.local.name=req.body.name;
-            newUser.local.email = email;
-            newUser.local.password = newUser.generateHash(password);
-            //데이터 저장
-            newUser.save(function(err){
-              if(err)
-              throw err;
-              return done(null,newUser);
+  passport.use(
+    "local-signup",
+    new LocalStrategy(
+      {
+        usernameField: "email",
+        passwordField: "password",
+        passReqToCallback: true
+      },
+      function(req, email, password, done) {
+        if (email) email = email.toLowerCase();
+        //비동기로 처리
+        process.nextTick(function() {
+          //user가 아직 로그인하지 않았다면
+          if (!req.user) {
+            User.findOne({ "local.email": email }, function(err, user) {
+              //에러 발생시
+              if (err) return done(err);
+              //이메일 중복검사
+              if (user) {
+                return done(
+                  null,
+                  false,
+                  req.flash("signupMessage", "email is already taken.")
+                );
+              } else {
+                //user생성
+                var newUser = new User();
+                //req.body로 부터 사용자명 가져오기
+                newUser.local.name = req.body.name;
+                newUser.local.email = email;
+                newUser.local.password = newUser.generateHash(password);
+                //데이터 저장
+                newUser.save(function(err) {
+                  if (err) throw err;
+                  return done(null, newUser);
+                });
+              }
             });
+          } else {
+            return done(null, req.user);
           }
         });
-      } else {
-        return done(null, req.user);
       }
-    });
-  }));
-
+    )
+  );
 };
